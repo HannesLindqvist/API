@@ -152,13 +152,13 @@ def staff_():
         return make_response(json_customer, 200)
 
 
-#En parameter
+#En parameter på orders
 
 @app.route('/orders/<int:_id>', methods=['DELETE','GET', 'PUT'])
 def orders(_id):
     mycursor = mydb.cursor()
     if request.method == 'DELETE':
-        mycursor.execute( "DELETE FROM staff WHERE staff_id = %s",[_id])
+        mycursor.execute( "DELETE FROM orders WHERE product_id = %s",[_id])
         mydb.commit()
         return Response("", status=200, mimetype='application/json')
     elif request.method == 'GET':
@@ -200,16 +200,17 @@ def orders_():
 def more_orders(_id, _id2):
     mycursor = mydb.cursor()
     if request.method == 'DELETE':
-        mycursor.execute( "DELETE FROM staff WHERE staff_id = %s",[_id])
+        mycursor.execute( "DELETE FROM orders WHERE customer_id = %s AND staff_id = %s ",[_id, _id2])
         mydb.commit()
         return Response("", status=200, mimetype='application/json')
     elif request.method == 'GET':
         mycursor.execute("SELECT * FROM orders WHERE product_id = %s AND customer_id = %s",[_id, _id2])
+        
+        print(_id, _id2)
         order = mycursor.fetchall()
-        print (order)
+
         json_order = jsonify(order)
-      #  print (json_order)
-       # return make_response(json_order, 200)
+        print (json_order)
         return make_response(json_order)
     else:
         json = request.get_json()
@@ -217,6 +218,40 @@ def more_orders(_id, _id2):
         mycursor.execute ("UPDATE staff SET last_name = %s WHERE staff_id = %s", (last_name, _id))
         mydb.commit()
         return Response("", status=200, mimetype='application/json')
+
+
+
+
+#Prova något liknande
+
+
+@app.route('/orders_two/<int:id_1>/<int:id_2>', methods=['DELETE', 'PUT'])
+def orders_two(id_1, id_2):
+    mycursor = mydb.cursor()
+    if request.method == 'DELETE':
+        if id_1 and id_2:
+            task = ("DELETE FROM orders WHERE product_id = %s AND customer_id = %s")
+            data = (id_1, id_2)
+            mycursor.execute(task, data)
+            mydb.commit()
+            return "Deleted"
+        # ("", status=200, mimetype='application/json')
+
+
+@app.route('/orders_put/<int:id_1>/<int:id_2>', methods=['PUT'])
+def orders_put(id_1, id_2):
+        mycursor = mydb.cursor()
+        if request.method == 'PUT':
+            json = request.get_json()
+            staff_id = json['staff_id']
+            mycursor.execute("UPDATE orders SET staff_id = %s WHERE product_id = %s AND customer_id = %s", ([staff_id, id_1, id_2])) 
+            mydb.commit()
+            fetch = mycursor.fetchall()
+            return jsonify(fetch) and Response("", status=201, mimetype='application/json')
+        # Response("", status=200, mimetype='application/json')
+
+
+
 
 
 
